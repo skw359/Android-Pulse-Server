@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preload" href="/assets/loginbackground.mp4" as="video">
+    <link rel="icon" href="/assets/favicon.ico" type="image/favicon.ico">
+    <title>Pulse Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .video-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+        }
+
+        .blur-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: -1;
+        }
+
+        .loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background-color: #42f5f5;
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        .login-container {
+            position: relative;
+            margin-top: 50px;
+            width: 430px;
+            background-color: white;
+            padding: 20px 20px 20px 280px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 0;
+            position: relative;
+        }
+
+        .login-container h2 {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            margin-left: -20px;
+        }
+
+        .logo {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            width: 200px;
+            height: auto;
+        }
+
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: calc(100% - 30px);
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            transition: border 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .login-container input[type="submit"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #8a0100;
+            color: white;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400, bold;
+        }
+
+        .login-container input[type="submit"]:hover {
+            background-color: #6b0000;
+        }
+
+        .login-container input[type="text"]:focus,
+        .login-container input[type="password"]:focus {
+            outline: none;
+            border: 1px solid #8a0100;
+            box-shadow: 0 0 5px #8a0100;
+        }
+
+        .login-button {
+            width: calc(100% - 30px);
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #8a0100;
+            color: white;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-button:hover {
+            background-color: #6b0000;
+        }
+
+        .login-button.disabled {
+            background-color: #8a0100;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .login-button.disabled:hover {
+            background-color: #8a0100;
+        }
+
+        .error-message {
+            max-width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background-color: #e02424;
+            color: white;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            padding-right: 20px;
+            box-sizing: border-box;
+            display: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .error-label {
+            margin-right: 20px;
+            background-color: #8a0100;
+            color: white;
+            padding: 5px 15px;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .error-text {
+            flex-grow: 1;
+            text-align: start;
+        }
+
+        .disclaimer {
+            margin-top: 10px;
+            margin-bottom: -5px;
+            font-size: 12px;
+            text-align: left;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+        }
+
+        .loader {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            animation: spin 1.1s cubic-bezier(0.8, 0.45, 0.6, 0.7) infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: translate(-50%, -50%) rotate(-85deg);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotate(275deg);
+            }
+        }
+
+        body *:not(style):not(script):not(.interactive):not(#error-message):not(.error-label) {
+            visibility: hidden;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                visibility: visible;
+            }
+
+            100% {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body>
+    <video class="video-bg" autoplay muted loop>
+        <source src="/assets/loginbackground.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="blur-overlay"></div>
+    <div class="container">
+        <div id="error-message" class="error-message">
+            <div class="error-label"></div>
+        </div>
+        <div class="login-container">
+            <img src="/assets/pulselogo.png" alt="Pulse Logo" class="logo">
+            <h2>Android Pulse Login</h2>
+            <form action="/login" method="post" class="interactive">
+                <input type="text" name="username" placeholder="Username" required class="interactive">
+                <input type="password" name="password" placeholder="Password" required class="interactive">
+                <button type="submit" id="loginButton" class="login-button interactive">
+                    <span id="loginText" class="interactive">Sign in</span>
+                    <span id="loader" class="loader interactive"></span>
+                </button>
+            </form>
+            <p class="disclaimer">For authorized use only. This service is stringently monitored.</p>
+        </div>
+    </div>
+    <script>
+        window.addEventListener('load', function () {
+            document.querySelectorAll('body *:not(.interactive)').forEach(function (el) {
+                el.classList.add('fade-in');
+            });
+        });
+
+        var isLoggingIn = false;
+        var button = document.getElementById('loginButton');
+        var loader = document.getElementById('loader');
+        var loginText = document.getElementById('loginText');
+
+        function positionLogo() {
+            var containerWidth = document.querySelector('.container').offsetWidth;
+            var loginContainerPaddingLeft = parseInt(getComputedStyle(document.querySelector('.login-container')).paddingLeft, 10);
+            var logoWidth = document.querySelector('.logo').offsetWidth;
+            var logo = document.querySelector('.logo');
+            var logoLeftPosition = (loginContainerPaddingLeft - logoWidth) / 2;
+            logo.style.left = logoLeftPosition + 'px';
+        }
+
+        window.addEventListener('load', positionLogo);
+        window.addEventListener('resize', positionLogo);
+
+        function login(event) {
+            event.preventDefault();
+
+            if (isLoggingIn) return;
+            isLoggingIn = true;
+
+            var errorMessageDiv = document.getElementById('error-message');
+            if (!errorMessageDiv.innerHTML.includes("Login attempts exceeded. Please retry in 10 minutes.")) {
+                errorMessageDiv.style.display = 'none';
+            }
+
+            var username = document.getElementsByName('username')[0].value;
+            var password = document.getElementsByName('password')[0].value;
+
+            showLoader();
+
+            // AJAX request
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/login', true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            window.location.href = response.redirect;
+                        } else {
+                            showError(response.message);
+                        }
+                    } catch (e) {
+                        showError('Unable to parse server response - network error.');
+                    }
+                    resetLoginButton();
+                }
+            };
+
+            xhr.send(JSON.stringify({
+                username: username,
+                password: password
+            }));
+        }
+
+        function showLoader() {
+            loader.style.visibility = 'visible';
+            loader.style.display = 'block';
+            loginText.style.visibility = 'hidden';
+            button.disabled = true;
+            button.classList.add('disabled');
+
+            var inputs = document.querySelectorAll('input[type=text], input[type=password]');
+            inputs.forEach(function (input) {
+                input.disabled = true;
+            });
+
+            var opacity = 1;
+            var interval = 10;
+            var decrement = 0.05;
+            var timer = setInterval(function () {
+                opacity -= decrement;
+                button.style.opacity = opacity;
+                if (opacity <= 0.5) {
+                    clearInterval(timer);
+                    button.disabled = true;
+                    return true;
+                }
+            }, interval);
+
+            var loadingBar = document.getElementById('loadingBar');
+            loadingBar.style.width = '77%';
+        }
+
+        function resetLoginButton() {
+            isLoggingIn = false;
+            loader.style.display = 'none';
+            loginText.style.visibility = 'visible';
+            button.disabled = false;
+            button.classList.remove('disabled');
+
+            var inputs = document.querySelectorAll('input[type=text], input[type=password]');
+            inputs.forEach(function (input) {
+                input.disabled = false;
+            });
+
+            var opacity = 0.5;
+            var increment = 0.05;
+            var timer = setInterval(function () {
+                opacity += increment;
+                button.style.opacity = opacity;
+                if (opacity >= 1) {
+                    clearInterval(timer);
+                    button.disabled = false;
+                }
+            }, 10);
+
+            var loadingBar = document.getElementById('loadingBar');
+            loadingBar.style.width = '100%';
+
+            setTimeout(function () {
+                loadingBar.style.display = 'none';
+
+                setTimeout(function () {
+                    loadingBar.style.width = '0%';
+                    loadingBar.style.display = 'block';
+                }, 1000);
+            }, 500);
+        }
+
+        function showError(message) {
+            var errorMessageDiv = document.getElementById('error-message');
+            errorMessageDiv.innerHTML = '<div class="error-label">ERROR</div>' + message;
+            errorMessageDiv.style.display = 'flex';
+
+            var loadingBar = document.getElementById('loadingBar');
+            loadingBar.style.width = '0%';
+        }
+
+        document.querySelector('form').addEventListener('submit', login);
+    </script>
+    <div id="loadingBar" class="loading-bar"></div>
+</body>
+
+</html>

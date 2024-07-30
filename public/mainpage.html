@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse Main Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 50px 0 0 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #20243c;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .page-content {
+            width: 90%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.35s ease-out;
+        }
+
+        .page-content.fade-in {
+            opacity: 1;
+        }
+
+        h1 {
+            text-align: center;
+            transition: opacity 0.35s ease-out;
+        }
+
+        .wrapper {
+            width: 100%;
+            transition: transform 0.35s ease-out, opacity 0.35s ease-out;
+        }
+
+        .fade-out h1 {
+            opacity: 0;
+        }
+
+        .fade-out .wrapper {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            backdrop-filter: blur(0px);
+            transition: backdrop-filter 0.25s ease-in-out;
+            pointer-events: none;
+        }
+
+        body.blur-background::after {
+            z-index: 1;
+            backdrop-filter: blur(5px);
+        }
+
+        .page-content {
+            width: 90%;
+            max-width: 1200px;
+            transition: transform 0.35s ease-out, opacity 0.35s ease-out;
+        }
+
+        .page-content.fade-out {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+
+        .container.fade-out {
+            transform: translateX(-30px);
+            opacity: 0;
+        }
+
+        .device-box {
+            background-color: #07072b;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: outline 0.25s ease-in-out;
+            height: 200px;
+            outline: 2px solid transparent;
+        }
+
+        .device-box:hover {
+            outline: 2px solid #57ff84;
+        }
+
+        .device-icon {
+            width: 120px;
+            height: 120px;
+            margin-right: 20px;
+        }
+
+        .device-details {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .device-status {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+        }
+
+        .device-box h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .device-box .status .dot.disconnected {
+            background-color: red;
+        }
+
+        .device-box .status .disconnected-text {
+            color: red;
+        }
+
+        .edit-icon {
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 1.2em;
+            color: #57ff84;
+            vertical-align: middle;
+            width: 20px;
+            height: 20px;
+        }
+
+        .device-box .status {
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            background-color: #0e1736;
+            border-radius: 5px;
+            flex-shrink: 0;
+        }
+
+        .device-box .status .dot {
+            height: 10px;
+            width: 10px;
+            background-color: green;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .device-box .last-updated {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        a.device-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: opacity 0.25s ease-in-out;
+        }
+
+        .modal-content {
+            background-color: #20243c;
+            padding: 30px;
+            width: 540px;
+            border-radius: 10px;
+            color: white;
+            position: absolute;
+            left: 50%;
+            top: 33%;
+            transform: translate(-50%, -33%);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        #deviceNameInput {
+            font-family: 'Montserrat', sans-serif;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #1a1c2e;
+            color: white;
+            outline: none;
+            box-shadow: 0 0 0 0 rgba(66, 245, 245, 0);
+            transition: box-shadow 0.2s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .input-wrapper {
+            padding: 0 20px;
+        }
+
+        #deviceNameInput:focus {
+            box-shadow:
+                0 0 0 1px rgba(87, 255, 132, 1),
+                0 0 20px rgba(87, 255, 132, 0.6),
+                0 0 40px rgba(87, 255, 132, 0.2);
+            /* Outer glow */
+        }
+
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100px;
+        }
+
+        #cancelButton {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #444;
+            color: white;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        #cancelButton:hover {
+            background-color: #333333;
+        }
+
+        #saveButton {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #57ff84;
+            color: #20243c;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        #saveButton:hover {
+            background-color: #3ebd60;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-content" id="pageContent">
+        <h1>Registered Devices</h1>
+        <div class="wrapper">
+            <div class="container" id="deviceContainer">
+              
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Device Name</h2>
+            <input type="text" id="deviceNameInput">
+            <div class="modal-buttons">
+                <button id="cancelButton">Cancel</button>
+                <button id="saveButton">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDeviceId = '';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(() => document.getElementById('pageContent').classList.add('fade-in'), 10);
+            fetchDevices();
+            setInterval(fetchDevices, 5000);
+        });
+
+        function formatTimeSince(lastUpdated) {
+            const now = new Date();
+            const updatedTime = new Date(lastUpdated);
+            const diffInSeconds = Math.floor((now - updatedTime) / 1000);
+            const minutes = Math.floor(diffInSeconds / 60);
+            const seconds = diffInSeconds % 60;
+
+            if (minutes > 5) {
+                return `over 5 minutes ago`;
+            } else if (minutes > 0) {
+                return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            } else {
+                return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
+            }
+        }
+
+        async function fetchDevices() {
+            try {
+                const response = await fetch('/devices');
+
+                const data = await response.json();
+                const container = document.getElementById('deviceContainer');
+                container.innerHTML = '';
+                data.devices.forEach(device => {
+                    const box = document.createElement('div');
+                    box.className = 'device-box';
+                    box.onclick = () => navigateToDeviceDetails(device.id);
+
+                    const lastUpdated = formatTimeSince(device.lastUpdated);
+                    const isDisconnected = lastUpdated.includes('over 5 minutes ago');
+
+                    box.innerHTML = `
+                <h3>${device.name}</h3>
+                <div class="device-details">
+                    <img src="phoneicon.png" class="device-icon" alt="Device Icon">
+                </div>
+                <div class="device-status">
+                    <div class="status">
+                        <span class="dot ${isDisconnected ? 'disconnected' : ''}"></span>
+                        <span class="${isDisconnected ? 'disconnected-text' : ''}">${isDisconnected ? 'Disconnected' : 'Connected'}</span>
+                    </div>
+                    <div class="last-updated">Updated ${lastUpdated}</div>
+                </div>
+                <img src="/assets/editicon.png" class="edit-icon" onclick="openEditModal(event, '${device.id}', '${device.name}')" alt="Edit">
+            `;
+                    container.appendChild(box);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function navigateToDeviceDetails(deviceId) {
+            const pageContent = document.getElementById('pageContent');
+            pageContent.classList.add('fade-out');
+
+            setTimeout(() => {
+                window.location.href = `/device/${deviceId}`;
+            }, 300);
+        }
+
+        function openEditModal(event, deviceId, currentName) {
+            event.stopPropagation();
+            currentDeviceId = deviceId;
+            document.getElementById('deviceNameInput').value = currentName;
+            const modal = document.getElementById('editModal');
+            document.body.classList.add('blur-background');
+            modal.style.display = 'block';
+            setTimeout(() => {
+                modal.style.opacity = '1';
+            }, 10);
+        }
+
+        document.getElementById('cancelButton').onclick = function () {
+            closeModal();
+        }
+
+        document.getElementById('saveButton').onclick = function () {
+            const newName = document.getElementById('deviceNameInput').value;
+            updateDeviceAlias(currentDeviceId, newName);
+            closeModal();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('editModal');
+            modal.style.opacity = '0';
+            document.body.classList.remove('blur-background');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 250);
+        }
+
+        async function updateDeviceAlias(deviceId, newAlias) {
+            try {
+                const response = await fetch('/api/updateAlias', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ deviceId, alias: newAlias }),
+                });
+
+                if (response.ok) {
+                    fetchDevices();
+                } else {
+                    console.error('Failed to update alias');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>

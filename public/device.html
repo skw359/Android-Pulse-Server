@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse - Device Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .battery-icon {
+            width: 40px;
+            height: 20px;
+            border: 2px solid white;
+            border-radius: 3px;
+            padding: 1px;
+            position: relative;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .battery-icon::after {
+            content: '';
+            height: 10px;
+            width: 3px;
+            background: white;
+            display: block;
+            position: absolute;
+            top: 5px;
+            right: -5px;
+        }
+
+        .battery-level {
+            height: 100%;
+            background: white;
+            transition: width 0.3s ease-in-out;
+        }
+
+        @keyframes fadeInFromRight {
+            0% {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeOutToLeft {
+            0% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+        }
+
+        .fade-out-swipe {
+            animation: fadeOutToLeft 0.35s ease-in forwards;
+        }
+
+        .fade-in-swipe {
+            animation: fadeInFromRight 0.35s ease-out forwards;
+        }
+        .hover-underline-animation {
+    position: relative;
+    text-decoration: none;
+}
+
+.hover-underline-animation::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 1px;
+    bottom: 0;
+    left: 0;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.25s ease-out;
+}
+
+.hover-underline-animation:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+    </style>
+</head>
+
+<body class="bg-[#20243c]">
+    <div id="mainContainer" class="container mx-auto px-4 py-8 fade-in-swipe">
+        <h1 id="deviceName" class="text-3xl font-bold mb-2 text-white">Device Details</h1>
+        <p id="lastUpdated" class="text-sm text-gray-400 mb-4 flex items-center">
+            <span id="statusDot" class="w-2 h-2 rounded-full mr-2"></span>
+            <span id="lastUpdatedText">Last updated: --</span>
+        </p>
+        <a href="/landing" id="backButton" class="text-green-500 hover-underline-animation mb-4 inline-block">&larr; Back to Devices</a>
+        <div class="bg-[#07072b] p-6 rounded-xl shadow mb-6">
+            <h2 class="text-2xl font-semibold mb-4 text-white">Current Stats</h2>
+            <div id="currentStats" class="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
+                <div>
+                    <p class="font-semibold text-white flex items-center">
+                        <img id="cellSignalIcon" src="/assets/signal-0-bars.png" alt="Cell Signal"
+                            class="inline-block mr-2" style="width: 24px; height: 24px;">
+                        <span id="mobileData">--</span>
+                    </p>
+                </div>
+                <div>
+                    <p class="font-semibold text-white flex items-center">
+                        <img id="batteryIcon" src="/assets/battery-full.png" alt="Battery Icon"
+                            class="inline-block mr-2" style="width: 24px; height: 24px; transform: rotate(90deg);">
+                        <span id="batteryLevel">--</span>
+                    </p>
+                </div>
+                <div>
+                    <p class="font-semibold text-white flex items-center">
+                        <i class="fas fa-memory mr-2"></i>
+                        <span id="ramUsage">--</span>
+                    </p>
+                </div>
+                <div>
+                    <div id="networkConnection" class="font-semibold text-white flex items-center">
+                        <img id="networkIcon" src="/assets/wifi.png" alt="Network Icon" class="inline-block mr-2"
+                            style="width: 24px; height: 24px;">
+                        <span id="wifiNetwork">--</span>
+                    </div>
+                </div>
+                <div>
+                    <p class="font-semibold text-white flex items-center">
+                        <i class="fas fa-mobile-alt mr-2"></i>
+                        <span id="wifiSignalStrength">--</span>
+                    </p>
+                </div>
+                <div>
+                    <p class="font-semibold text-white flex items-center">
+                        <i class="fas fa-hdd mr-2"></i>
+                        <span id="storageUsage">--</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-[#07072b] p-6 rounded-xl shadow mb-6">
+            <h2 class="text-2xl font-semibold mb-4 text-white">Core Data</h2>
+            <canvas id="statsChart"></canvas>
+        </div>
+
+        <div class="bg-[#07072b] p-6 rounded-xl shadow mt-6">
+            <h2 class="text-2xl font-semibold mb-1 text-white">Network Traffic</h2>
+            <div class="text-sm text-gray-400 mb-4">
+                <span id="totalDownload">Total Download: -- GB</span> •
+                <span id="totalUpload">Total Upload: -- GB</span>
+            </div>
+            <canvas id="networkTrafficChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const deviceId = window.location.pathname.split('/').pop();
+        let chart;
+        let networkTrafficChart;
+        let lastUpdatedTime;
+
+        function formatTimeSince(lastUpdated) {
+            const now = new Date();
+            const updatedTime = new Date(lastUpdated);
+            const diffInSeconds = Math.floor((now - updatedTime) / 1000);
+            const minutes = Math.floor(diffInSeconds / 60);
+            const seconds = diffInSeconds % 60;
+
+            if (minutes > 5) {
+                return { text: 'Disconnected', isDisconnected: true };
+            } else if (minutes > 0) {
+                return { text: `${minutes} minute${minutes !== 1 ? 's' : ''} ago`, isDisconnected: false };
+            } else {
+                return { text: `${seconds} second${seconds !== 1 ? 's' : ''} ago`, isDisconnected: false };
+            }
+        }
+
+        function updateLastUpdated() {
+            if (lastUpdatedTime) {
+                const now = new Date();
+                const updatedTime = new Date(lastUpdatedTime);
+                const diffInMinutes = (now - updatedTime) / (1000 * 60);
+
+                const statusDot = document.getElementById('statusDot');
+                const lastUpdatedText = document.getElementById('lastUpdatedText');
+
+                const timeStatus = formatTimeSince(lastUpdatedTime);
+
+                if (timeStatus.isDisconnected) {
+                    statusDot.classList.add('bg-red-500');
+                    statusDot.classList.remove('bg-green-500');
+                    lastUpdatedText.classList.add('text-red-500');
+                    lastUpdatedText.textContent = timeStatus.text;
+                } else {
+                    statusDot.classList.add('bg-green-500');
+                    statusDot.classList.remove('bg-red-500');
+                    lastUpdatedText.classList.remove('text-red-500');
+                    lastUpdatedText.textContent = `Updated ${timeStatus.text}`;
+                }
+            }
+        }
+
+        function fetchDeviceDetails() {
+            fetch(`/api/stats/${deviceId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.stats.length > 0) {
+                        const latestStat = data.stats[0];
+                        document.getElementById('deviceName').textContent = data.deviceAlias;
+                        lastUpdatedTime = latestStat.timestamp;
+                        updateLastUpdated();
+                        updateBatteryIcon(latestStat.batteryLevel);
+                        document.getElementById('batteryLevel').textContent = `${latestStat.batteryLevel}%`;
+                        updateNetworkIcon(latestStat.wifiNetwork, latestStat.wifiSignalStrength);
+                        document.getElementById('wifiNetwork').textContent = latestStat.wifiNetwork;
+                        document.getElementById('wifiSignalStrength').textContent = `${latestStat.wifiSignalStrength} dBm`;
+                        updateCellSignalIcon(latestStat.mobileDataAvailable, latestStat.cellSignalStrength);
+                        document.getElementById('ramUsage').textContent = `${(latestStat.ramUsage * 100).toFixed(2)}%`;
+                        document.getElementById('storageUsage').textContent = `${(latestStat.storageUsage * 100).toFixed(2)}%`;
+
+                        updateChart(data.stats.reverse());
+                        updateNetworkTrafficChart(data.networkTrafficData);
+                    }
+                });
+        }
+
+        function updateNetworkTrafficChart(data) {
+            const ctx = document.getElementById('networkTrafficChart').getContext('2d');
+            const labels = data.map(stat => new Date(stat.timestamp));
+            const downloadData = data.map(stat => stat.downloadSpeed);
+            const uploadData = data.map(stat => stat.uploadSpeed);
+
+            // Calculate total download and upload, converting from Mbps to GB
+            // Multiply by 60 (seconds) and divide by 8 (bits to bytes) and 1000 (MB to GB)
+            const totalDownload = downloadData.reduce((sum, speed) => sum + (Number(speed) || 0) * 60 / 8 / 1000, 0);
+            const totalUpload = uploadData.reduce((sum, speed) => sum + (Number(speed) || 0) * 60 / 8 / 1000, 0);
+            const totalDownloadGB = totalDownload.toFixed(2);
+            const totalUploadGB = totalUpload.toFixed(2);
+
+            // Update the total download and upload text
+            document.getElementById('totalDownload').textContent = `Total Download: ${totalDownloadGB} GB`;
+            document.getElementById('totalUpload').textContent = `Total Upload: ${totalUploadGB} GB`;
+
+            if (networkTrafficChart) {
+                networkTrafficChart.destroy();
+            }
+
+            networkTrafficChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Download Speed',
+                            data: downloadData,
+                            borderColor: '#45ff64',
+                            backgroundColor: '#45ff64',
+                            tension: 0.1,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#45ff64',
+                            pointHoverBorderColor: '#45ff64',
+                            pointHoverBorderWidth: 0
+                        },
+                        {
+                            label: 'Upload Speed',
+                            data: uploadData,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgb(75, 192, 192)',
+                            tension: 0.1,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: 'rgb(75, 192, 192)',
+                            pointHoverBorderColor: 'rgb(75, 192, 192)',
+                            pointHoverBorderWidth: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Speed (Mbps)',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'minute',
+                                displayFormats: {
+                                    minute: 'h:mm a'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 6
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                title: function (tooltipItems) {
+                                    return new Date(tooltipItems[0].parsed.x).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                },
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(2) + ' Mbps';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                boxWidth: 6,
+                                boxHeight: 6,
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBatteryIcon(level) {
+            const batteryIcon = document.getElementById('batteryIcon');
+            let iconName;
+
+            if (level > 80) {
+                iconName = 'battery-full';
+            } else if (level > 60) {
+                iconName = 'battery-80';
+            } else if (level > 40) {
+                iconName = 'battery-60';
+            } else if (level > 20) {
+                iconName = 'battery-40';
+            } else if (level > 10) {
+                iconName = 'battery-20';
+            } else {
+                iconName = 'battery-10';
+            }
+
+            batteryIcon.src = `/assets/${iconName}.png`;
+            batteryIcon.style.transform = 'rotate(90deg)';
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            const labels = data.map(stat => new Date(stat.timestamp));
+            const batteryData = data.map(stat => stat.batteryLevel);
+            const ramData = data.map(stat => stat.ramUsage * 100);
+            const storageData = data.map(stat => stat.storageUsage * 100);
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            Chart.defaults.font.family = "'Montserrat', sans-serif";
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Battery Level',
+                            data: batteryData,
+                            borderColor: '#45ff64',
+                            backgroundColor: '#45ff64',
+                            tension: 0.1,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#45ff64',
+                            pointHoverBorderColor: '#45ff64',
+                            pointHoverBorderWidth: 0
+                        },
+                        {
+                            label: 'RAM Usage',
+                            data: ramData,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgb(75, 192, 192)',
+                            tension: 0.1,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: 'rgb(75, 192, 192)',
+                            pointHoverBorderColor: 'rgb(75, 192, 192)',
+                            pointHoverBorderWidth: 0
+                        },
+                        {
+                            label: 'Storage Usage',
+                            data: storageData,
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgb(153, 102, 255)',
+                            tension: 0.1,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: 'rgb(153, 102, 255)',
+                            pointHoverBorderColor: 'rgb(153, 102, 255)',
+                            pointHoverBorderWidth: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Percentage (%)',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'hour',
+                                displayFormats: {
+                                    hour: 'h A'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: false,
+                                callback: function (value, index, values) {
+                                    const date = new Date(value);
+                                    const hour = date.getHours();
+                                    const minute = date.getMinutes();
+
+                                    if (minute === 0) {
+                                        return hour === 0 || hour === 12 ? (hour === 0 ? '12 AM' : '12 PM') : ((hour % 12) + (hour < 12 ? ' AM' : ' PM'));
+                                    } else if (minute === 15 || minute === 30 || minute === 45) {
+                                        return `${minute}`;
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                title: function (tooltipItems) {
+                                    const date = new Date(tooltipItems[0].parsed.x);
+                                    const hour = date.getHours();
+                                    const minute = date.getMinutes();
+                                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                                    const hour12 = hour % 12 || 12;
+                                    return `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`;
+                                },
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += Math.round(context.parsed.y) + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                boxWidth: 6,
+                                boxHeight: 6,
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function getWifiIcon(signalStrength) {
+            if (signalStrength >= -55) return '/assets/wifi-4-bars.png'; // Excellent
+            if (signalStrength >= -65) return '/assets/wifi-3-bars.png'; // Good
+            if (signalStrength >= -75) return '/assets/wifi-2-bars.png'; // Fair
+            if (signalStrength >= -85) return '/assets/wifi-1-bars.png'; // Poor
+            return '/assets/wifi-0-bars.png'; // Very Poor or No Signal
+        }
+
+        function getCellSignalIcon(signalStrength) {
+            if (signalStrength === 'No Service') return '/assets/signal-0-bars.png';
+            if (signalStrength >= -70) return '/assets/signal-4-bars.png';
+            if (signalStrength >= -85) return '/assets/signal-3-bars.png';
+            if (signalStrength >= -100) return '/assets/signal-2-bars.png';
+            if (signalStrength >= -110) return '/assets/signal-1-bars.png';
+            return '/assets/signal-0-bars.png';
+        }
+
+        function updateNetworkIcon(status, signalStrength) {
+            const networkIcon = document.getElementById('networkIcon');
+            const wifiNetwork = document.getElementById('wifiNetwork');
+
+            if (status === "Ethernet Connected") {
+                networkIcon.src = "/assets/ethernet.png";
+                wifiNetwork.textContent = "Ethernet Connected";
+            } else {
+                networkIcon.src = getWifiIcon(signalStrength);
+                wifiNetwork.textContent = status;
+            }
+            // Ensure the text color remains white
+            wifiNetwork.classList.add('text-white');
+        }
+
+        function updateCellSignalIcon(mobileDataAvailable, signalStrength) {
+            const cellSignalIcon = document.getElementById('cellSignalIcon');
+            const mobileDataStatus = document.getElementById('mobileData');
+
+            cellSignalIcon.src = getCellSignalIcon(mobileDataAvailable ? signalStrength : 'No Service');
+            mobileDataStatus.textContent = mobileDataAvailable ? `${signalStrength} dBm` : 'No Service';
+        }
+        document.getElementById('backButton').addEventListener('click', function (e) {
+            e.preventDefault();
+            const mainContainer = document.getElementById('mainContainer');
+            mainContainer.classList.remove('fade-in-swipe');
+            mainContainer.classList.add('fade-out-swipe');
+
+            // Wait for the animation to complete before navigating
+            setTimeout(() => {
+                window.location.href = this.getAttribute('href');
+            }, 350); // 350ms matches our animation duration
+        });
+
+        // Fetch device details initially and then every 30 seconds
+        fetchDeviceDetails();
+        setInterval(fetchDeviceDetails, 30000);
+
+        // Update the "Last updated" text every second
+        setInterval(updateLastUpdated, 1000);
+    </script>
+</body>
+
+</html>
