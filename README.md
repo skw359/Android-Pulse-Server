@@ -1,46 +1,139 @@
-**Android Pulse**
+# Android Pulse
 
-Android Pulse is a device monitoring system, with the goal of a friendly user interface, that allows you to track and analyze the performance of your Android devices in real-time. This project consists of a server-side application that collects, stores, and visualizes data from connected Android devices.
+> A comprehensive device monitoring system for Android devices with real-time analytics and a user-friendly web interface.
 
-**Features**
+## Overview
 
-- Real-time monitoring of multiple Android devices
-- Tracks key device metrics:
-  - Battery level
-  - Wi-Fi network and signal strength
-  - Mobile data availability
-  - RAM usage
-  - Storage usage
-  - Network traffic (download and upload speeds, total usage)
+Android Pulse is a powerful device monitoring solution that enables you to track and analyze the performance of your Android devices in real-time. The system features a robust server-side application that efficiently collects, stores, and visualizes performance data from connected Android devices through an intuitive web dashboard.
 
-- Web-based dashboard for easy visualization of device stats
-- Device aliasing for better organization
-- API endpoints for data collection and retrieval
+## Key Features
 
-**Tech Stack**
+### Device Monitoring
+- **Real-time tracking** of multiple Android devices simultaneously
+- **Comprehensive metrics collection** including:
+  - Battery level and charging status
+  - Wi-Fi network connectivity and signal strength
+  - Mobile data availability and usage
+  - RAM usage and memory statistics
+  - Storage capacity and usage patterns
+  - Network traffic monitoring (download/upload speeds, total data usage)
 
-- Backend: Node.js with Express.js
-- Database: PostgreSQL with Sequelize ORM
-- Frontend: HTML, CSS, JavaScript (static files served by Express)
-- Authentication: bcrypt for password hashing
-- Input Validation: express-validator
+### User Interface
+- **Web-based dashboard** for intuitive data visualization
+- **Device aliasing** system for better organization and identification
+- **Responsive design** for desktop and mobile access
 
-**Getting Started**
+### API Integration
+- **RESTful API endpoints** for seamless data collection and retrieval
+- **Flexible data submission** for custom Android applications
+- **Real-time data synchronization** between devices and server
 
-1. Clone the repository
-2. Install dependencies: npm install
-3. Set up your PostgreSQL database and update the connection details in server.js
-4. Run the server: node server.js
-5. Access the web interface at http://localhost:3000
+## Technology Stack
 
-**API Endpoints**
+| Component | Technology |
+|-----------|------------|
+| **Backend** | Node.js with Express.js framework |
+| **Database** | PostgreSQL with Sequelize ORM |
+| **Frontend** | HTML5, CSS3, JavaScript (ES6+) |
+| **Security** | bcrypt for password hashing |
+| **Validation** | express-validator for input sanitization |
 
-- POST /api/stats: Submit device statistics
-- GET /api/stats/:deviceId: Retrieve stats for a specific device
-- GET /devices: Get a list of all connected devices
-- POST /api/updateAlias: Update the alias for a device
+## Quick Start
 
-**Security Notice**
-Currently, the project uses a basic authentication system. For production use or any other use cases besides development, it's recommended absolutely not use this. A .env file would be much better even
+### Prerequisites
+- Node.js (v14 or higher)
+- PostgreSQL database
+- npm or yarn package manager
 
-**Contributions are welcome! Please feel free to submit a Pull Request :)**
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/android-pulse.git
+   cd android-pulse
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Database setup**
+   - Create a PostgreSQL database
+   - Update connection details in `server.js`
+
+4. **Start the server**
+   ```bash
+   node server.js
+   ```
+
+5. **Access the application**
+   - Open your browser to `http://localhost:3000`
+   - Begin monitoring your Android devices
+
+## API Reference
+
+### Device Statistics
+
+#### Submit Device Data
+```http
+POST /api/stats
+```
+Submit real-time statistics from Android devices.
+
+#### Retrieve Device Stats
+```http
+GET /api/stats/:deviceId
+```
+Fetch historical and current statistics for a specific device.
+
+### Device Management
+
+#### List All Devices
+```http
+GET /devices
+```
+Retrieve a comprehensive list of all connected devices.
+
+#### Update Device Alias
+```http
+POST /api/updateAlias
+```
+Modify the display name/alias for better device identification.
+
+## Security Considerations
+
+> **⚠Important Security Notice**
+> 
+> The current implementation uses a basic authentication system suitable for development purposes only. For production deployments, please implement:
+> - Environment variable configuration (`.env` file)
+> - JWT-based authentication
+> - HTTPS encryption
+> - Rate limiting
+> - Input sanitization enhancements
+
+## Contributing
+
+Ideas from all over the world are always welcome! Here's how you can help:
+
+1. **Fork the repository**
+2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Commit your changes** (`git commit -m 'Add amazing feature'`)
+4. **Push to the branch** (`git push origin feature/amazing-feature`)
+5. **Open a Pull Request**
+
+### Development Guidelines
+- Try to follow existing code style and conventions
+- Add tests for new features
+- Update documentation as needed
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+If you encounter any issues or have questions:
+- Open an issue on GitHub
+- Check existing issues for solutions
+- Review the documentation
